@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks.
+ */
+
+/**
+ * Implements hook_rebuild().
+ */
+/**
+ * Not needed since we added src/Drush/Commands/SyncStaxCommands.php
+ * which files on all drush commands and not just cache rebuilds
+ * 
+function searchstax_connection_override_rebuild() {
+  // Directly call your sync service during the rebuild process.
+  // This ensures Drush executes the sync before it finishes the command.
+  if (\Drupal::hasService('searchstax_connection_override.searchstax_config_sync_subscriber')) {
+    \Drupal::service('searchstax_connection_override.searchstax_config_sync_subscriber')->onEventTrigger();
+  }
+}
+*/

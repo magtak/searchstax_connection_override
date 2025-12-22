@@ -1,0 +1,9 @@
+name: 'SearchStax connection override'
+type: module
+description: 'Forces specific searchstax-related settings.php overrides into the active database configuration on every request.'
+package: Custom
+core_version_requirement: ^10 || ^11
+php: 8.3
+
+dependencies:
+  - drupal:config

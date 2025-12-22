@@ -1,0 +1,6 @@
+services:
+  searchstax_connection_override.searchstax_config_sync_subscriber:
+    class: Drupal\searchstax_connection_override\EventSubscriber\SearchStaxSyncEventSubscriber
+    arguments: ['@config.factory', '@logger.factory']
+    tags:
+      - { name: event_subscriber }

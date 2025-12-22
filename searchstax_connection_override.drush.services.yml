@@ -1,0 +1,5 @@
+services:
+  searchstax_connection_override.commands:
+    class: Drupal\searchstax_connection_override\Drush\Commands\SyncStaxCommands
+    tags:
+      - { name: drush.command }
