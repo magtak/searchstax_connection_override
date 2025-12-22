@@ -62,7 +62,6 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
       }
 
       // Verification Level 2: Must be the SearchStax connector.
-      // Based on your YAML, 'connector' is a direct child of 'backend_config'.
       if ($runtime_config->get('backend_config.connector') !== 'searchstax') {
         continue;
       }
@@ -70,7 +69,6 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
       $editable_config = $this->configFactory->getEditable($config_name);
       $needs_save = FALSE;
 
-      // Paths confirmed by your 'drush cget' output.
       $keys = [
         'backend_config.connector_config.update_endpoint',
         'backend_config.connector_config.update_token',
