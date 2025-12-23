@@ -4,92 +4,70 @@ namespace Drupal\searchstax_connection_override\EventSubscriber;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Console\ConsoleEvents;
 
-/**
- * Syncs SearchStax overrides from settings.php to the database.
- */
 class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
 
   protected $configFactory;
   protected $logger;
+  protected $messenger;
 
-
-  /**
-   * Constructs an SearchStaxSyncEventSubscriber instance.
-   *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
-   *   The logger factory.
-   */
-
-  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct(
+    ConfigFactoryInterface $config_factory, 
+    LoggerChannelFactoryInterface $logger_factory,
+    MessengerInterface $messenger
+  ) {
     $this->configFactory = $config_factory;
     $this->logger = $logger_factory->get('searchstax_override');
+    $this->messenger = $messenger;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public static function getSubscribedEvents(): array {
     return [
-      // For Browser visits.
       KernelEvents::REQUEST => ['onEventTrigger', 300],
-      // For Drush commands. This is the fix for "drush status".
-      ConsoleEvents::COMMAND => ['onEventTrigger', 300],
     ];
   }
 
-  public function onEventTrigger(RequestEvent $event = NULL) {
+  public function onEventTrigger($event = NULL) {
     if ($event instanceof RequestEvent && !$event->isMainRequest()) {
       return;
     }
+    $this->executeSync();
+  }
 
-    // Identify all Search API servers.
+  public function executeSync() {
     $server_configs = $this->configFactory->listAll('search_api.server.');
 
     foreach ($server_configs as $config_name) {
-
       $runtime_config = $this->configFactory->get($config_name);
       
-      // Verification Level 1: Must be Solr.
-      if ($runtime_config->get('backend') !== 'search_api_solr') {
-        continue;
-      }
-
-      // Verification Level 2: Must be the SearchStax connector.
-      if ($runtime_config->get('backend_config.connector') !== 'searchstax') {
+      if ($runtime_config->get('backend') !== 'search_api_solr' || 
+          $runtime_config->get('backend_config.connector') !== 'searchstax') {
         continue;
       }
 
       $editable_config = $this->configFactory->getEditable($config_name);
-      $needs_save = FALSE;
+      $endpoint_key = 'backend_config.connector_config.update_endpoint';
+      
+      $override_value = $runtime_config->get($endpoint_key);
+      $database_value = $editable_config->get($endpoint_key);
 
-      $keys = [
-        'backend_config.connector_config.update_endpoint',
-        'backend_config.connector_config.update_token',
-      ];
-
-      foreach ($keys as $key) {
-        $override_value = $runtime_config->get($key);
-        $database_value = $editable_config->get($key);
-
-        // Sync if settings.php has a value AND it differs from the DB.
-        if ($override_value !== NULL && $override_value !== $database_value) {
-          $editable_config->set($key, (string) $override_value);
-          $needs_save = TRUE;
-        }
-      }
-
-      if ($needs_save) {
+      if ($override_value !== NULL && $override_value !== $database_value) {
+        $editable_config->set($endpoint_key, (string) $override_value);
         $editable_config->save();
-        $this->logger->notice('Updated DB config for @name to match settings.php overrides.', [
-          '@name' => $config_name,
-        ]);
+
+        $message = "Updating server $config_name to the endpoint $override_value to avoid overwriting the wrong index.";
+
+        $this->logger->notice($message);
+
+        if (PHP_SAPI === 'cli' && class_exists('\Drush\Drush')) {
+          \Drush\Drush::output()->writeln("<info>[SearchStax Sync]</info> $message");
+        }
+
+        $this->messenger->addStatus($message);
       }
     }
   }
