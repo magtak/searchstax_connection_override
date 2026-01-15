@@ -8,7 +8,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Console\ConsoleEvents;
-use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Syncs SearchStax overrides from settings.php to the database.
@@ -17,7 +16,6 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
 
   protected $configFactory;
   protected $logger;
-  protected $messenger;
 
   /**
    * Constructs an SearchStaxSyncEventSubscriber instance.
@@ -28,10 +26,9 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
    *   The logger factory.
    */
 
-  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory, MessengerInterface $messenger) {
+  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory) {
     $this->configFactory = $config_factory;
     $this->logger = $logger_factory->get('searchstax_override');
-    $this->messenger = $messenger;
   }
 
   /**
@@ -94,9 +91,6 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
           if (PHP_SAPI === 'cli' && class_exists('\Drush\Drush')) {
             \Drush\Drush::output()->writeln("<info>[SearchStax Sync]</info> $message");
           }
-
-          // UI notification for privileged users.
-          $this->messenger->addStatus($message);
         }
       }
 
