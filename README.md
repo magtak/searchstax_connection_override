@@ -22,6 +22,6 @@ The module hooks into the Drupal lifecycle at the earliest possible moments:
 Replace SERVER_MACHINE_NAME with your actual server's machine name
 
 ```
-$config['search_api']['server'][SERVER_MACHINE_NAME]['backend_config']['connector_config']['update_endpoint'] = 'https://foo.com/solr';
-$config['search_api']['server'][SERVER_MACHINE_NAME]['backend_config']['connector_config']['update_token'] = 'AEDJER-1238932-DUMMY-CREDS';
+$config['search_api.server.SERVER_MACHINE_NAME']['backend_config']['connector_config']['update_endpoint'] = 'https://foo.com/solr';
+$config['search_api.server.SERVER_MACHINE_NAME']['backend_config']['connector_config']['update_token'] = 'AEDJER-1238932-DUMMY-CREDS';
 ```
