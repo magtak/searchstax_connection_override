@@ -8,6 +8,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Console\ConsoleEvents;
+use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Syncs SearchStax overrides from settings.php to the database.
@@ -16,7 +17,7 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
 
   protected $configFactory;
   protected $logger;
-
+  protected $messenger;
 
   /**
    * Constructs an SearchStaxSyncEventSubscriber instance.
@@ -27,9 +28,10 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
    *   The logger factory.
    */
 
-  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory, LoggerChannelFactoryInterface $logger_factory, MessengerInterface $messenger) {
     $this->configFactory = $config_factory;
     $this->logger = $logger_factory->get('searchstax_override');
+    $this->messenger = $messenger;
   }
 
   /**
@@ -74,7 +76,7 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
         'endpoint' => 'backend_config.connector_config.update_endpoint',
         'token' => 'backend_config.connector_config.update_token',
       ];
-
+      
       foreach ($keys as $label => $config_key) {
         $override_value = $runtime_config->get($config_key);
         $database_value = $editable_config->get($config_key);
@@ -103,3 +105,4 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
       }
     }
   }
+}
