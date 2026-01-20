@@ -70,8 +70,10 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
 
       // Map of configuration keys to update.
       $keys = [
-        'endpoint' => 'backend_config.connector_config.update_endpoint',
-        'token' => 'backend_config.connector_config.update_token',
+        'context' => 'backend_config.connector_config.context',
+        'update_token' => 'backend_config.connector_config.update_token',
+        'host' => 'backend_config.connector_config.host',
+        'core' => 'backend_config.connector_config.core',
       ];
       
       foreach ($keys as $label => $config_key) {
