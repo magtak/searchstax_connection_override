@@ -74,6 +74,7 @@ class SearchStaxSyncEventSubscriber implements EventSubscriberInterface {
         'update_token' => 'backend_config.connector_config.update_token',
         'host' => 'backend_config.connector_config.host',
         'core' => 'backend_config.connector_config.core',
+        'update_endpoint' => 'backend_config.connector_config.update_endpoint'
       ];
       
       foreach ($keys as $label => $config_key) {
